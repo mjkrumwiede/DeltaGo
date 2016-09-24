@@ -105,7 +105,7 @@ public class DisplayTime extends AppCompatActivity {
 
             try {
                 URL url = new URL("https://demo30-test.apigee.net/v1/hack/status?flightNumber=" + message + "&flightOriginDate=" +
-                        formattedDate + "&apiKey=WISwm1hTrfWfZGTDxULy1csrxNQddEd4");
+                        formattedDate + "&apikey=WISwm1hTrfWfZGTDxULy1csrxNQddEd4");
                 urlString = url.toString();
 
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
