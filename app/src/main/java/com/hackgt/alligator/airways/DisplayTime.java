@@ -56,6 +56,8 @@ public class DisplayTime extends AppCompatActivity{
     private Integer hoursToAirport;
     private Integer minToAirport;
     private Integer secToAirport;
+    private Long FinalHours;
+    private Long FinalMinutes;
 
     private Date timeToLeave;
     private Calendar currentDate = Calendar.getInstance();
@@ -273,7 +275,7 @@ public class DisplayTime extends AppCompatActivity{
 
     class TsaTask extends AsyncTask<Void, Void, String> {
         ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        TextView responseView = (TextView) findViewById(R.id.responseView);
+        //TextView responseView = (TextView) findViewById(R.id.responseView);
         String urlString;
         String apikey = "WISwm1hTrfWfZGTDxULy1csrxNQddEd4";
         String baseUrl = "https://demo30-test.apigee.net/v1/hack/";
@@ -282,7 +284,7 @@ public class DisplayTime extends AppCompatActivity{
 
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-            responseView.setText("");
+            //responseView.setText("");
         }
 
         protected String doInBackground(Void... urls) {
@@ -353,12 +355,12 @@ public class DisplayTime extends AppCompatActivity{
                     long diff = timeToLeave.getTime() - subtract.getTime();
                     SimpleDateFormat df2 = new java.text.SimpleDateFormat("HH:mm", Locale.US);
                     long seconds = diff / 1000;
-                    long minutes = (seconds / 60);
-                    long hours = minutes / 60;
-                    minutes = minutes%60;
-                    waitTime = hours + ":" + minutes;
-                    timeToLeave = df.parse(waitTime);
-                    responseView.setText("You should leave by " + waitTime);
+                    FinalMinutes = (seconds / 60);
+                    FinalHours = FinalMinutes / 60;
+                    FinalMinutes = FinalMinutes%60;
+                    //waitTime = FinalHours + ":" + FinalMinutes;
+                    //timeToLeave = df.parse(waitTime);
+                    //responseView.setText("You should leave by " + waitTime);
                     new GoogleTask().execute();
 
                 } catch (Exception e) {
@@ -382,7 +384,7 @@ public class DisplayTime extends AppCompatActivity{
 
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-            responseView.setText("");
+           responseView.setText("");
         }
 
         protected String doInBackground(Void... urls) {
@@ -433,8 +435,31 @@ public class DisplayTime extends AppCompatActivity{
                 minToAirport = (int)Math.floor(timeToTravel/60);
                 timeToTravel = timeToTravel % 60;
                 secToAirport = timeToTravel;
-                responseView.setText("You are "+hoursToAirport+" hrs, "+minToAirport+" min, and " +
-                        secToAirport+" sec from Airport!");
+                FinalHours = FinalHours - hoursToAirport;
+                if(FinalMinutes<minToAirport) {
+                    FinalHours = FinalHours - 1;
+                    FinalMinutes = 60 - (minToAirport-FinalMinutes);
+                }
+                else{
+                    FinalMinutes = FinalMinutes - minToAirport;
+                }
+                String amorpm = "";
+                if (FinalHours > 12){
+                    FinalHours=FinalHours-12;
+                    amorpm = "pm";
+                }
+                else{
+                    amorpm="am";
+                }
+                if(FinalMinutes<10) {
+                    responseView.setText(FinalHours + ":0" + FinalMinutes + " "+ amorpm);
+                }
+                else{
+                    responseView.setText(FinalHours + ":" + FinalMinutes + " "+ amorpm);
+                }
+
+               // responseView.setText("You are "+hoursToAirport+" hrs, "+minToAirport+" min, and " +
+                      //  secToAirport+" sec from Airport!");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
