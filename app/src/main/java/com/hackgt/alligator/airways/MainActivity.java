@@ -6,7 +6,10 @@ import android.os.Bundle;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
@@ -16,7 +19,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ImageView myImageView = (ImageView)findViewById(R.id.imageView11);
+        Animation myFadeInAnimation = AnimationUtils.loadAnimation(this, R.anim.logofade);
+        myImageView.startAnimation(myFadeInAnimation); //Set animation to your ImageView
         flightNumberEntered();
+        EditText flightNum = (EditText)findViewById(R.id.editText);
+        flightNum.startAnimation(myFadeInAnimation);
     }
 
     public void flightNumberEntered(){

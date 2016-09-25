@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">AirWays</string>
-    <string name="edit_message1">Enter Your Flight Number!</string>
+    <string name="edit_message1">Flight Number</string>
 </resources>
