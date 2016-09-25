@@ -35,8 +35,11 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 
 public class DisplayTime extends AppCompatActivity{
@@ -45,6 +48,7 @@ public class DisplayTime extends AppCompatActivity{
     private final static String apikey = "WISwm1hTrfWfZGTDxULy1csrxNQddEd4";
     private final static String baseUrl = "https://demo30-test.apigee.net/v1/hack/";
     private String terminal;
+
     private String airportLat;
     private String airportLong;
     private String myLat;
@@ -52,6 +56,12 @@ public class DisplayTime extends AppCompatActivity{
     private Integer hoursToAirport;
     private Integer minToAirport;
     private Integer secToAirport;
+
+    private Date timeToLeave;
+    private Calendar currentDate = Calendar.getInstance();
+    private Calendar originDate = currentDate;
+    private boolean differentDays = false;
+    private int step = 0;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -93,12 +103,8 @@ public class DisplayTime extends AppCompatActivity{
         }
 
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-        AsyncTask task = new RetrieveFeedTask().execute();
-//        if (task.getStatus().equals(AsyncTask.Status.FINISHED)) {
-            new TsaTask().execute();
-//        }
-        new GoogleTask().execute();
-
+        step = 0;
+        new RetrieveFeedTask().execute();
     }
 
     /**
@@ -152,17 +158,17 @@ public class DisplayTime extends AppCompatActivity{
         }
 
         protected String doInBackground(Void... urls) {
-            Calendar c = Calendar.getInstance();
-            System.out.println("Current time => " + c.getTime());
-
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-            String formattedDate = df.format(c.getTime());
+            SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+            String formattedDate = df.format(currentDate.getTime());
+            String formattedDate2 = sf.format(originDate.getTime());
+            formattedDate = formattedDate2;
             // Do some validation here
 
             try {
                 URL url = new URL(baseUrl + "status?flightNumber=" + message + "&flightOriginDate=" +
                         formattedDate + "&apikey=" + apikey);
-
+                Log.i("INFO",url.toString());
 
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 try {
@@ -195,24 +201,72 @@ public class DisplayTime extends AppCompatActivity{
                 JSONObject check = object.getJSONObject("flightStatusResponse");
                 check = check.getJSONObject("statusResponse");
                 check = check.getJSONObject("flightStatusTO");
-                JSONArray checkArr = check.getJSONArray("flightStatusLegTOList");
-                check = checkArr.getJSONObject(1);
+                JSONArray checkArr;
+                try {
+                    checkArr = check.getJSONArray("flightStatusLegTOList");
+                    check = checkArr.getJSONObject(0);
+                } catch (Exception e) {
+                    checkArr=null;
+                    check = check.getJSONObject("flightStatusLegTOList");
+                }
                 String test = check.getString("departureAirportName");
                 airportCode = check.getString("departureAirportCode");
-                airportLat = check.getString("arrivalTsoagLatitudeDecimal");
-                airportLong = check.getString("arrivalTsoagLongitudeDecimal");
-                terminal = check.getString("departureTerminal");
-                switch (terminal) {
-                    case "Domestic Term-South":
-                        terminal = "T South Checkpoint";
-                        break;
-                    case "International Term":
-                        terminal = "International";
-                        break;
+                if (airportCode.equals("ATL")) {
+                    terminal = check.getString("departureTerminal");
+                } else {
+                    check = checkArr.getJSONObject(1);
+                    test = check.getString("departureAirportName");
+                    airportCode = check.getString("departureAirportCode");
+                    terminal = check.getString("departureTerminal");
                 }
-                responseView.setText(test);
+
+                String startTime = "";
+                if (check.has("departureLocalTimeEstimatedActual")) {
+                    startTime = check.getString("departureLocalTimeEstimatedActual");
+                }   else {
+                    startTime = check.getString("departureLocalTimeScheduled");
+                }
+                String[] args = startTime.split("T");
+                String testingDate = args[0];
+                SimpleDateFormat testF = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                String testDate = testF.format(originDate.getTime());
+                String[] args2 = testDate.split("-");
+                if ((testDate != testingDate) && (!differentDays)) {
+                    String day_of_month = args2[2];
+                    originDate.set(Calendar.DAY_OF_MONTH, (Integer.parseInt(day_of_month) -1));
+                    differentDays = true;
+                } else {
+                    startTime = args[1];
+                    args = startTime.split("-");
+                    startTime = args[0]; // HH:MM:SS
+                    args = startTime.split(":");
+                    String hours = args[0];
+                    String mins = args[1];
+                    SimpleDateFormat df = new java.text.SimpleDateFormat("HH:mm", Locale.US);
+                    String time = hours + ":" + mins;
+                    try {
+                        timeToLeave = df.parse(time);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    switch (terminal) {
+                        case "Domestic Term-South":
+                            terminal = "T South Checkpoint";
+                            break;
+                        case "International Term":
+                            terminal = "International";
+                            break;
+                    }
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
+            }
+            if (step == 0) {
+                step = 1;
+                new RetrieveFeedTask().execute();
+            } else if (step == 1) {
+                step = 2;
+                new TsaTask().execute();
             }
         }
     }
@@ -268,9 +322,12 @@ public class DisplayTime extends AppCompatActivity{
                 JSONArray airport = tsaObject.getJSONArray("AirportResult");
                 JSONObject airportCheck = airport.getJSONObject(0);
                 airportCheck = airportCheck.getJSONObject("airport");
+                airportLat = airportCheck.getString("latitude");
+                airportLong = airportCheck.getString("longitude");
                 airport = airportCheck.getJSONArray("checkpoints");
                 int id = 0;
                 for (int i = 0; i < airport.length(); i++) {
+                    System.out.println(terminal);
                     JSONObject checkpoint = airport.getJSONObject(i);
                     if (checkpoint.getString("longname").equals(terminal) ) {
                         id = checkpoint.getInt("id");
@@ -279,6 +336,7 @@ public class DisplayTime extends AppCompatActivity{
                 try {
                     JSONArray waitTimes = tsaObject.getJSONArray("WaitTimeResult");
                     String waitTime = "";
+
                     for (int i = 0; i < waitTimes.length(); i++) {
                         JSONObject timesCheck = waitTimes.getJSONObject(i);
                         if (id == timesCheck.getInt("checkpointID")) {
@@ -286,7 +344,23 @@ public class DisplayTime extends AppCompatActivity{
                             i += waitTimes.length();
                         }
                     }
-                    responseView.setText("Your Wait Time is " + waitTime);
+                    String[] times = waitTime.split("-");
+                    waitTime = times[1];
+                    times = waitTime.split("min");
+                    waitTime = times[0];
+                    SimpleDateFormat df = new java.text.SimpleDateFormat("mm", Locale.US);
+                    Date subtract = df.parse(waitTime);
+                    long diff = timeToLeave.getTime() - subtract.getTime();
+                    SimpleDateFormat df2 = new java.text.SimpleDateFormat("HH:mm", Locale.US);
+                    long seconds = diff / 1000;
+                    long minutes = (seconds / 60);
+                    long hours = minutes / 60;
+                    minutes = minutes%60;
+                    waitTime = hours + ":" + minutes;
+                    timeToLeave = df.parse(waitTime);
+                    responseView.setText("You should leave by " + waitTime);
+                    new GoogleTask().execute();
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
