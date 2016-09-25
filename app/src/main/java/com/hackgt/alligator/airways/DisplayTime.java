@@ -70,6 +70,8 @@ public class DisplayTime extends AppCompatActivity{
     private int step = 0;
     private boolean itWorked=false;
     private boolean done=false;
+
+    private TextView responseView;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -83,6 +85,8 @@ public class DisplayTime extends AppCompatActivity{
 
         Intent intent = getIntent();
         message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+
+        responseView = (TextView) findViewById(R.id.responseView);
 
         getPermissions();
 
@@ -153,7 +157,6 @@ public class DisplayTime extends AppCompatActivity{
 
     class RetrieveFeedTask extends AsyncTask<Void, Void, String> {
         ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        TextView responseView = (TextView) findViewById(R.id.responseView);
         String urlString;
         String apikey = "WISwm1hTrfWfZGTDxULy1csrxNQddEd4";
         String baseUrl = "https://demo30-test.apigee.net/v1/hack/";
@@ -162,7 +165,7 @@ public class DisplayTime extends AppCompatActivity{
 
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-            responseView.setText("");
+           // responseView.setText("");
         }
 
         protected String doInBackground(Void... urls) {
@@ -222,8 +225,8 @@ public class DisplayTime extends AppCompatActivity{
                 if (airportCode.equals("ATL")) {
                     terminal = check.getString("departureTerminal");
                 } else {
-                    check = checkArr.getJSONObject(1);
-                    test = check.getString("departureAirportName");
+                    //check = checkArr.getJSONObject(1);
+                    //test = check.getString("departureAirportName");
                     airportCode = check.getString("departureAirportCode");
                     terminal = check.getString("departureTerminal");
                 }
@@ -381,7 +384,7 @@ public class DisplayTime extends AppCompatActivity{
 
     class GoogleTask extends AsyncTask<Void, Void, String> {
         ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        TextView responseView = (TextView) findViewById(R.id.responseView);
+        //TextView responseView = (TextView) findViewById(R.id.responseView);
         String urlString;
         String baseUrl = "https://maps.googleapis.com/maps/api/directions/json?";
         String apikey = "AIzaSyDZl2HiMQF1L9eEwFoCkJ5oHBo5G_hJWvQ";
@@ -390,7 +393,7 @@ public class DisplayTime extends AppCompatActivity{
 
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-            responseView.setText("");
+           // responseView.setText("");
         }
 
         protected String doInBackground(Void... urls) {
@@ -482,6 +485,7 @@ public class DisplayTime extends AppCompatActivity{
                 e.printStackTrace();
             }
         }
+
     }
 
     public class MyCurrentLocationListener implements android.location.LocationListener {
@@ -490,7 +494,6 @@ public class DisplayTime extends AppCompatActivity{
         public void onLocationChanged(Location location) {
             myLat = Double.toString(location.getLatitude());
             myLong = Double.toString(location.getLongitude());
-            Log.i("INFO","DICKS OUT FOR HARAMBE");
         }
 
         @Override

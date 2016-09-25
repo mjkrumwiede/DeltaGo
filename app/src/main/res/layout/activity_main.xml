@@ -27,7 +27,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/fuckthisshit"
+        app:srcCompat="@drawable/titlelogo"
         android:id="@+id/imageView11"
         android:layout_marginBottom="71dp"
         android:layout_alignParentBottom="true"
