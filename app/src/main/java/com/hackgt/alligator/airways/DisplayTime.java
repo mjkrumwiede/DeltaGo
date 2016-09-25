@@ -15,8 +15,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -42,6 +45,7 @@ import java.util.Date;
 import java.util.Locale;
 
 
+
 public class DisplayTime extends AppCompatActivity{
     private static String message;
     private String airportCode;
@@ -64,6 +68,8 @@ public class DisplayTime extends AppCompatActivity{
     private Calendar originDate = currentDate;
     private boolean differentDays = false;
     private int step = 0;
+    private boolean itWorked=false;
+    private boolean done=false;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -384,7 +390,7 @@ public class DisplayTime extends AppCompatActivity{
 
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-           responseView.setText("");
+            responseView.setText("");
         }
 
         protected String doInBackground(Void... urls) {
@@ -451,12 +457,24 @@ public class DisplayTime extends AppCompatActivity{
                 else{
                     amorpm="am";
                 }
+
+                responseView.setGravity(Gravity.CENTER);
+                FrameLayout.LayoutParams lparam =
+                        new FrameLayout.LayoutParams(responseView.getLayoutParams());
+                lparam.topMargin = 500;
+                responseView.setLayoutParams(lparam);
+
                 if(FinalMinutes<10) {
-                    responseView.setText(FinalHours + ":0" + FinalMinutes + " "+ amorpm);
+                    responseView.setText("If you want to make your flight on time, you should leave by "+
+                            FinalHours + ":0" + FinalMinutes + " "+ amorpm);
+                    itWorked=true;
                 }
                 else{
-                    responseView.setText(FinalHours + ":" + FinalMinutes + " "+ amorpm);
+                    responseView.setText("If you want to make your flight on time, you should leave by "+
+                            FinalHours + ":" + FinalMinutes + " "+ amorpm);
+                    itWorked=true;
                 }
+
 
                // responseView.setText("You are "+hoursToAirport+" hrs, "+minToAirport+" min, and " +
                       //  secToAirport+" sec from Airport!");
